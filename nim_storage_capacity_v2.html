@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NiM Storage Capacity — DC7171</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#ED1C24;--red2:#c0151b;--red-light:#fff0f0;
+  --yellow:#F5A623;--yellow-light:#fff8ee;--yellow2:#c47d0a;
+  --blue:#3FA9B4;--blue-light:#e8f7f9;--blue2:#2d8a94;
+  --green:#22a663;--green-light:#e6f9f0;
+  --orange:#f07800;--orange-light:#fff3e6;
+  --gray:#8a9ab0;--gray-light:#f5f5f5;--gray2:#e8ecf0;
+  --dark:#1a1a1a;--mid:#6b7280;--border:#e5e7eb;
+  --white:#ffffff;--bg:#f8f9fb;
+  --r:12px;--r-sm:7px;
+  --font:'Outfit','Noto Sans Thai',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:100vh;}
+
+/* HEADER */
+.hdr{background:var(--red);padding:10px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.hdr-logo{background:#fff;color:var(--red);font-weight:900;font-size:13px;padding:5px 11px;border-radius:7px;letter-spacing:.5px;}
+.hdr-brand{color:#fff;font-weight:800;font-size:17px;}
+.hdr-badge{background:var(--blue);color:#fff;font-size:11px;padding:3px 12px;border-radius:20px;font-weight:600;}
+.hdr-meta{margin-left:auto;color:rgba(255,255,255,.75);font-size:12px;text-align:right;line-height:1.4;}
+.hdr-refresh{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--font);}
+.hdr-refresh:hover{background:rgba(255,255,255,.25);}
+
+/* TABS */
+.tabs{background:var(--white);border-bottom:1.5px solid var(--border);display:flex;gap:4px;padding:8px 16px;overflow-x:auto;}
+.tab{padding:7px 16px;border-radius:9px;font-size:13px;cursor:pointer;color:var(--mid);border:none;background:none;font-family:var(--font);white-space:nowrap;font-weight:600;}
+.tab:hover{background:var(--gray-light);}
+.tab.active{background:var(--blue);color:#fff;}
+
+/* PAGES */
+.page{display:none;padding:16px;}
+.page.active{display:block;}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.kpi-card{background:var(--white);border-radius:var(--r);padding:16px;border-top:3px solid var(--gray2);}
+.kpi-card.red{border-top-color:var(--red);}
+.kpi-card.blue{border-top-color:var(--blue);}
+.kpi-card.yellow{border-top-color:var(--yellow);}
+.kpi-card.green{border-top-color:var(--green);}
+.kpi-label{font-size:11px;color:var(--mid);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.kpi-val{font-family:var(--mono);font-size:28px;font-weight:700;line-height:1;}
+.kpi-sub{font-size:11px;color:var(--mid);margin-top:5px;}
+
+/* SECTION */
+.section{background:var(--white);border-radius:var(--r);padding:16px;margin-bottom:14px;border:1px solid var(--border);}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:13px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;}
+
+/* ZONE GRID */
+.zone-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.zone-card{border-radius:var(--r-sm);padding:14px;border:1.5px solid var(--border);background:var(--bg);}
+.zone-name{font-size:13px;font-weight:700;margin-bottom:4px;}
+.zone-type{font-size:10px;color:var(--mid);margin-bottom:10px;}
+.bar-bg{background:var(--gray2);border-radius:4px;height:8px;margin-bottom:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+.bar-fill.ok{background:var(--green);}
+.bar-fill.warning{background:var(--yellow);}
+.bar-fill.critical{background:var(--red);}
+.zone-stats{display:flex;justify-content:space-between;font-size:11px;color:var(--mid);}
+.zone-pct{font-family:var(--mono);font-weight:700;}
+.zone-pct.ok{color:var(--green);}
+.zone-pct.warning{color:var(--yellow2);}
+.zone-pct.critical{color:var(--red);}
+.badge{display:inline-block;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;margin-top:6px;}
+.badge.ok{background:var(--green-light);color:#15803d;}
+.badge.warning{background:var(--yellow-light);color:var(--yellow2);}
+.badge.critical{background:var(--red-light);color:var(--red2);}
+
+/* ALERTS */
+.alert-list{display:flex;flex-direction:column;gap:8px;}
+.alert-item{border-radius:var(--r-sm);padding:12px 14px;border-left:3px solid var(--gray);display:flex;gap:12px;align-items:flex-start;background:var(--bg);}
+.alert-item.critical{border-left-color:var(--red);background:var(--red-light);}
+.alert-item.warning{border-left-color:var(--yellow);background:var(--yellow-light);}
+.alert-icon{font-size:17px;margin-top:1px;flex-shrink:0;}
+.alert-title{font-size:13px;font-weight:700;}
+.alert-desc{font-size:12px;color:var(--mid);margin-top:3px;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r-sm);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:#f5f5f5;padding:9px 12px;text-align:left;font-weight:700;color:var(--mid);font-size:11px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
+tbody td{padding:9px 12px;border-top:1px solid var(--border);color:var(--dark);}
+tbody tr:hover{background:#fafafa;}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.pill.ok{background:var(--green-light);color:#15803d;}
+.pill.warning{background:var(--yellow-light);color:var(--yellow2);}
+.pill.critical{background:var(--red-light);color:var(--red2);}
+.pill.pending{background:var(--blue-light);color:var(--blue2);}
+.pill.received{background:var(--green-light);color:#15803d;}
+.pill.cancelled{background:var(--gray-light);color:var(--gray);}
+
+/* FORECAST */
+.fc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.fc-day{background:var(--white);border-radius:var(--r-sm);padding:12px 8px;text-align:center;border:1.5px solid var(--border);}
+.fc-day.today{border-color:var(--blue);background:var(--blue-light);}
+.fc-day.warning{border-color:var(--yellow);background:var(--yellow-light);}
+.fc-day.critical{border-color:var(--red);background:var(--red-light);}
+.fc-label{font-size:10px;color:var(--mid);margin-bottom:4px;font-weight:600;}
+.fc-date{font-size:10px;color:var(--mid);margin-bottom:6px;}
+.fc-val{font-size:15px;font-weight:700;font-family:var(--mono);}
+.fc-pct{font-size:11px;font-weight:700;margin-top:3px;}
+.fc-po{font-size:10px;color:var(--blue2);margin-top:3px;}
+
+/* SETTINGS */
+.setting-group{margin-bottom:20px;}
+.setting-label{font-size:12px;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+.setting-row{display:flex;gap:10px;align-items:center;margin-bottom:8px;background:var(--bg);padding:10px 14px;border-radius:var(--r-sm);border:1px solid var(--border);}
+.setting-row label{font-size:13px;flex:1;}
+.setting-row input{border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;font-family:var(--font);width:100px;text-align:right;}
+.setting-row input:focus{outline:none;border-color:var(--blue);}
+.btn{padding:8px 18px;border-radius:8px;font-size:13px;font-family:var(--font);font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--dark);}
+.btn:hover{border-color:var(--blue);color:var(--blue);}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn.primary:hover{background:var(--blue2);}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--mid);flex-direction:column;gap:12px;}
+.spinner{width:32px;height:32px;border:3px solid var(--gray2);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px;color:var(--mid);font-size:13px;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .zone-grid{grid-template-columns:repeat(2,1fr);}
+  .fc-grid{grid-template-columns:repeat(4,1fr);}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .zone-grid{grid-template-columns:1fr 1fr;}
+  .fc-grid{grid-template-columns:repeat(2,1fr);}
+  .hdr-meta{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-logo">NiM</div>
+  <div class="hdr-brand">NiM Express</div>
+  <div class="hdr-badge">Storage Capacity</div>
+  <div class="hdr-meta">
+    <div id="dc-name">DC7171 ลำพูน</div>
+    <div id="last-updated">—</div>
+  </div>
+  <button class="hdr-refresh" onclick="loadDashboard()">↻ รีเฟรช</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+  <button class="tab" onclick="switchTab('stock',this)">📦 Stock & Zones</button>
+  <button class="tab" onclick="switchTab('po',this)">🚚 PO Incoming</button>
+  <button class="tab" onclick="switchTab('forecast',this)">📈 Forecast</button>
+  <button class="tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE: DASHBOARD                         -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page active" id="page-dashboard">
+  <div id="dash-loading" class="loading"><div class="spinner"></div><div>กำลังโหลดข้อมูล...</div></div>
+  <div id="dash-content" style="display:none;">
+
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card red">
+        <div class="kpi-label">% Capacity รวม</div>
+        <div class="kpi-val" id="kpi-pct" style="color:var(--red);">—</div>
+        <div class="kpi-sub" id="kpi-pct-sub">—</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">Stock ปัจจุบัน</div>
+        <div class="kpi-val" id="kpi-used">—</div>
+        <div class="kpi-sub" id="kpi-used-sub">—</div>
+      </div>
+      <div class="kpi-card yellow">
+        <div class="kpi-label">PO กำลังเข้า</div>
+        <div class="kpi-val" id="kpi-po">—</div>
+        <div class="kpi-sub" id="kpi-po-sub">—</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">พื้นที่ว่าง</div>
+        <div class="kpi-val" id="kpi-free" style="color:var(--green);">—</div>
+        <div class="kpi-sub" id="kpi-free-sub">—</div>
+      </div>
+    </div>
+
+    <!-- ZONES -->
+    <div class="section">
+      <div class="section-hdr">
+        <div class="section-title">Zone Overview</div>
+      </div>
+      <div class="zone-grid" id="zone-grid"></div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section" id="alert-section">
+      <div class="section-hdr">
+        <div class="section-title">Alerts</div>
+        <div id="alert-count" style="font-size:12px;color:var(--mid);"></div>
+      </div>
+      <div class="alert-list" id="alert-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE: STOCK & ZONES                     -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page" id="page-stock">
+  <div class="section">
+    <div class="section-hdr">
+      <div class="section-title">รายการ Stock</div>
+      <input id="stock-search" type="text" placeholder="ค้นหารหัส / ชื่อ..." style="border:1.5px solid var(--border);border-radius:7px;padding:6px 12px;font-size:13px;font-family:var(--font);width:200px;" oninput="renderStockTable()">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>รหัสสินค้า</th>
+            <th>รายละเอียด</th>
+            <th>Zone</th>
+            <th>พาเลท</th>
+            <th>จำนวนย่อย</th>
+            <th>หน่วย</th>
+            <th>อัปเดท</th>
+          </tr>
+        </thead>
+        <tbody id="stock-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE: PO INCOMING                       -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page" id="page-po">
+  <div class="kpi-grid" style="margin-bottom:14px;">
+    <div class="kpi-card blue">
+      <div class="kpi-label">PO Pending</div>
+      <div class="kpi-val" id="po-kpi-count">—</div>
+      <div class="kpi-sub">รายการ</div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">พาเลทรวม</div>
+      <div class="kpi-val" id="po-kpi-total">—</div>
+      <div class="kpi-sub">พาเลท กำลังเข้า</div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-hdr">
+      <div class="section-title">PO Incoming (Pending)</div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>PO Number</th>
+            <th>รหัสสินค้า</th>
+            <th>ชื่อสินค้า</th>
+            <th>จำนวน (ต้นฉบับ)</th>
+            <th>หน่วย</th>
+            <th>พาเลท</th>
+            <th>ETA</th>
+            <th>Zone</th>
+            <th>Status</th>
+            <th>ผู้ขาย</th>
+            <th>หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody id="po-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE: FORECAST                          -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page" id="page-forecast">
+  <div class="section">
+    <div class="section-hdr">
+      <div class="section-title">Forecast 7 วัน</div>
+      <div style="font-size:11px;color:var(--mid);">Stock ปัจจุบัน + PO ตาม ETA (ยังไม่หัก consumption)</div>
+    </div>
+    <div class="fc-grid" id="fc-grid"></div>
+  </div>
+  <div class="section">
+    <div class="section-hdr">
+      <div class="section-title">PO ที่จะเข้าตาม ETA</div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>วันที่ ETA</th><th>PO Number</th><th>สินค้า</th><th>พาเลท</th><th>Zone</th></tr>
+        </thead>
+        <tbody id="fc-po-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE: SETTINGS                          -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page" id="page-settings">
+  <div class="section" style="max-width:600px;">
+    <div class="section-hdr"><div class="section-title">Zone Capacity</div></div>
+    <div class="setting-group">
+      <div id="zone-settings"></div>
+      <button class="btn primary" onclick="saveZones()">💾 บันทึก Zone</button>
+    </div>
+  </div>
+  <div class="section" style="max-width:600px;">
+    <div class="section-hdr"><div class="section-title">Threshold</div></div>
+    <div class="setting-group">
+      <div class="setting-row">
+        <label>Warning (%)</label>
+        <input type="number" id="cfg-warn" value="75" min="50" max="95">
+      </div>
+      <div class="setting-row">
+        <label>Critical (%)</label>
+        <input type="number" id="cfg-crit" value="90" min="60" max="99">
+      </div>
+      <button class="btn primary" onclick="saveConfig()">💾 บันทึก Threshold</button>
+    </div>
+  </div>
+  <div class="section" style="max-width:600px;">
+    <div class="section-hdr"><div class="section-title">GAS URL</div></div>
+    <div style="font-size:12px;color:var(--mid);word-break:break-all;background:var(--bg);padding:10px;border-radius:7px;font-family:var(--mono);" id="gas-url-display"></div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────
+// CONFIG
+// ──────────────────────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzBiCixK2fgIA4TJvkPpBO4kyS8rJkw-VEi4B-L5DwBWw5XjLk66wLzkNeFTE15R1rnFA/exec';
+
+let _data = {};
+
+// ──────────────────────────────────────────
+// JSONP
+// ──────────────────────────────────────────
+function gasJsonp(params, timeoutMs = 25000) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const url = new URL(GAS_URL);
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+    url.searchParams.set('callback', cb);
+
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Timeout'));
+    }, timeoutMs);
+
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('Script error')); };
+    script.src = url.toString();
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    document.head.appendChild(script);
+  });
+}
+
+// ──────────────────────────────────────────
+// LOAD DASHBOARD
+// ──────────────────────────────────────────
+async function loadDashboard() {
+  show('dash-loading'); hide('dash-content');
+  try {
+    const res = await gasJsonp({ action: 'getDashboard' });
+    if (!res.ok) throw new Error(res.error || 'Load failed');
+    _data = res;
+    renderDashboard();
+    renderStock();
+    renderPO();
+    renderForecast();
+    renderSettings();
+    document.getElementById('last-updated').textContent = 'อัปเดท ' + (res.generated_at || '—');
+    if (res.config && res.config.DC_NAME) document.getElementById('dc-name').textContent = res.config.DC_NAME;
+  } catch(e) {
+    document.getElementById('dash-loading').innerHTML = `<div style="color:var(--red);text-align:center;"><div style="font-size:20px;">⚠</div><div style="margin-top:8px;">โหลดข้อมูลไม่ได้<br><small>${e.message}</small></div><br><button class="btn" onclick="loadDashboard()">ลองใหม่</button></div>`;
+    return;
+  }
+  hide('dash-loading'); show('dash-content');
+}
+
+// ──────────────────────────────────────────
+// RENDER DASHBOARD
+// ──────────────────────────────────────────
+function renderDashboard() {
+  const s = _data.summary || {};
+  const pct = s.total_pct || 0;
+  const pctColor = pct >= 90 ? 'var(--red)' : pct >= 75 ? 'var(--yellow2)' : 'var(--green)';
+
+  setText('kpi-pct', pct + '%');
+  document.getElementById('kpi-pct').style.color = pctColor;
+  setText('kpi-pct-sub', pct >= 90 ? '🔴 เกิน Critical' : pct >= 75 ? '⚠ เกิน Warning' : '✅ ปกติ');
+  setText('kpi-used', s.total_used || 0);
+  setText('kpi-used-sub', `พาเลท จาก ${s.total_capacity || 0}`);
+  setText('kpi-po', _data.po_summary?.total_pallets || 0);
+  setText('kpi-po-sub', `${_data.po_summary?.pending_count || 0} PO กำลังเข้า`);
+  setText('kpi-free', s.total_free || 0);
+  const freeColor = (s.total_free || 0) < 50 ? 'var(--red)' : (s.total_free || 0) < 100 ? 'var(--yellow2)' : 'var(--green)';
+  document.getElementById('kpi-free').style.color = freeColor;
+  setText('kpi-free-sub', 'พาเลท เหลืออยู่');
+
+  // Zones
+  const zg = document.getElementById('zone-grid');
+  zg.innerHTML = (_data.zones || []).map(z => `
+    <div class="zone-card">
+      <div class="zone-name">${z.zone_name}</div>
+      <div class="zone-type">${z.zone_type}</div>
+      <div class="bar-bg"><div class="bar-fill ${z.status}" style="width:${Math.min(z.pct,100)}%"></div></div>
+      <div class="zone-stats">
+        <span>${z.used} / ${z.capacity} พาเลท</span>
+        <span class="zone-pct ${z.status}">${z.pct}%</span>
+      </div>
+      <span class="badge ${z.status}">${z.status === 'critical' ? 'Critical' : z.status === 'warning' ? 'Warning' : 'ปกติ'}</span>
+    </div>
+  `).join('');
+
+  // Alerts
+  const alerts = _data.alerts || [];
+  const al = document.getElementById('alert-list');
+  setText('alert-count', alerts.length + ' รายการ');
+  if (alerts.length === 0) {
+    al.innerHTML = '<div class="empty">✅ ไม่มี Alert ขณะนี้</div>';
+  } else {
+    al.innerHTML = alerts.map(a => `
+      <div class="alert-item ${a.level}">
+        <div class="alert-icon">${a.level === 'critical' ? '🔴' : '⚠️'}</div>
+        <div>
+          <div class="alert-title">${a.title}</div>
+          <div class="alert-desc">${a.desc}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// ──────────────────────────────────────────
+// RENDER STOCK TABLE
+// ──────────────────────────────────────────
+function renderStock() {
+  window._stockData = _data.stock || [];
+  renderStockTable();
+}
+
+function renderStockTable() {
+  const q = (document.getElementById('stock-search')?.value || '').toLowerCase();
+  const rows = (window._stockData || []).filter(r =>
+    !q || (r['รหัสสินค้า']||'').toLowerCase().includes(q) || (r['รายละเอียดสินค้า']||'').toLowerCase().includes(q)
+  );
+  const zones = _data.zones || [];
+  const zMap = {};
+  zones.forEach(z => zMap[z.zone_id] = z.status);
+
+  document.getElementById('stock-tbody').innerHTML = rows.length === 0
+    ? '<tr><td colspan="7" style="text-align:center;color:var(--mid);padding:30px;">ไม่พบข้อมูล</td></tr>'
+    : rows.map(r => {
+        const zoneId = r['Zone'] || '';
+        const st = zMap[zoneId] || 'ok';
+        return `<tr>
+          <td style="font-family:var(--mono);font-size:11px;">${r['รหัสสินค้า']||''}</td>
+          <td>${r['รายละเอียดสินค้า']||''}</td>
+          <td><span class="pill ${st}">${zoneId}</span></td>
+          <td style="font-family:var(--mono);font-weight:700;">${r['จำนวนพาเลท']||0}</td>
+          <td style="font-family:var(--mono);">${(r['จำนวนย่อย']||0).toLocaleString()}</td>
+          <td>${r['หน่วยย่อย']||''}</td>
+          <td style="color:var(--mid);font-size:11px;">${r['วันที่อัปเดท']||''}</td>
+        </tr>`;
+      }).join('');
+}
+
+// ──────────────────────────────────────────
+// RENDER PO
+// ──────────────────────────────────────────
+function renderPO() {
+  const po = _data.po || [];
+  const ps = _data.po_summary || {};
+  setText('po-kpi-count', ps.pending_count || 0);
+  setText('po-kpi-total', ps.total_pallets || 0);
+
+  document.getElementById('po-tbody').innerHTML = po.length === 0
+    ? '<tr><td colspan="11" style="text-align:center;color:var(--mid);padding:30px;">ไม่มี PO Pending</td></tr>'
+    : po.map(p => `<tr>
+        <td style="font-family:var(--mono);font-size:11px;">${p['PO Number']||''}</td>
+        <td style="font-family:var(--mono);font-size:11px;">${p['รหัสสินค้า']||''}</td>
+        <td>${p['ชื่อสินค้า']||''}</td>
+        <td style="font-family:var(--mono);text-align:right;">${(p['จำนวน (ต้นฉบับ)']||0).toLocaleString()}</td>
+        <td style="color:var(--mid);font-size:11px;">${p['หน่วย']||''}</td>
+        <td style="font-family:var(--mono);font-weight:700;text-align:right;">${p['จำนวน (พาเลท)']||0}</td>
+        <td>${p['ETA (วันที่)']||''}</td>
+        <td><span class="pill pending">${p['Zone ปลายทาง']||''}</span></td>
+        <td><span class="pill ${(p['Status']||'').toLowerCase()}">${p['Status']||''}</span></td>
+        <td style="color:var(--mid);font-size:11px;">${p['ผู้ขาย']||''}</td>
+        <td style="color:var(--mid);font-size:11px;">${p['หมายเหตุ']||''}</td>
+      </tr>`).join('');
+}
+
+// ──────────────────────────────────────────
+// RENDER FORECAST
+// ──────────────────────────────────────────
+function renderForecast() {
+  const fc = _data.forecast || [];
+  const cap = _data.summary?.total_capacity || 600;
+  const warn = Number(_data.config?.WARNING_PCT || 75);
+  const crit = Number(_data.config?.CRITICAL_PCT || 90);
+
+  document.getElementById('fc-grid').innerHTML = fc.map((d,i) => {
+    const cls = i === 0 ? 'today' : d.pct >= crit ? 'critical' : d.pct >= warn ? 'warning' : '';
+    const pctColor = d.pct >= crit ? 'var(--red)' : d.pct >= warn ? 'var(--yellow2)' : 'var(--green)';
+    return `<div class="fc-day ${cls}">
+      <div class="fc-label">${i === 0 ? 'วันนี้' : '+' + i + ' วัน'}</div>
+      <div class="fc-date" style="font-size:10px;">${d.date}</div>
+      <div class="fc-val">${d.used}</div>
+      <div class="fc-pct" style="color:${pctColor}">${d.pct}%</div>
+      ${d.po_in > 0 ? `<div class="fc-po">+${d.po_in} PO</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // PO by ETA table
+  const po = _data.po || [];
+  const sorted = [...po].sort((a,b) => (a['ETA (วันที่)']||'').localeCompare(b['ETA (วันที่)']||''));
+  document.getElementById('fc-po-tbody').innerHTML = sorted.length === 0
+    ? '<tr><td colspan="5" style="text-align:center;color:var(--mid);padding:20px;">ไม่มี PO</td></tr>'
+    : sorted.map(p => `<tr>
+        <td>${p['ETA (วันที่)']||''}</td>
+        <td style="font-family:var(--mono);font-size:11px;">${p['PO Number']||''}</td>
+        <td>${p['ชื่อสินค้า']||''}</td>
+        <td style="font-family:var(--mono);font-weight:700;">${p['จำนวน (พาเลท)']||0}</td>
+        <td><span class="pill pending">${p['Zone ปลายทาง']||''}</span></td>
+      </tr>`).join('');
+}
+
+// ──────────────────────────────────────────
+// RENDER SETTINGS
+// ──────────────────────────────────────────
+function renderSettings() {
+  const zones = _data.zones || [];
+  document.getElementById('zone-settings').innerHTML = zones.map(z => `
+    <div class="setting-row">
+      <label>${z.zone_name} (${z.zone_type})</label>
+      <input type="number" id="zone-cap-${z.zone_id}" value="${z.capacity}" min="1" max="9999"> พาเลท
+    </div>
+  `).join('');
+
+  const cfg = _data.config || {};
+  if (cfg.WARNING_PCT)  document.getElementById('cfg-warn').value = cfg.WARNING_PCT;
+  if (cfg.CRITICAL_PCT) document.getElementById('cfg-crit').value = cfg.CRITICAL_PCT;
+
+  document.getElementById('gas-url-display').textContent = GAS_URL;
+}
+
+function saveZones() {
+  const zones = _data.zones || [];
+  const data = zones.map(z => ({
+    zone_id: z.zone_id,
+    capacity: Number(document.getElementById('zone-cap-' + z.zone_id)?.value || z.capacity)
+  }));
+  fetch(GAS_URL, {
+    method: 'POST', mode: 'no-cors',
+    body: JSON.stringify({ action: 'saveZones', data })
+  }).then(() => { alert('✅ บันทึก Zone แล้ว — รีเฟรชเพื่อดูผล'); loadDashboard(); })
+    .catch(() => alert('❌ บันทึกไม่สำเร็จ'));
+}
+
+function saveConfig() {
+  const data = {
+    WARNING_PCT:  Number(document.getElementById('cfg-warn').value),
+    CRITICAL_PCT: Number(document.getElementById('cfg-crit').value)
+  };
+  fetch(GAS_URL, {
+    method: 'POST', mode: 'no-cors',
+    body: JSON.stringify({ action: 'saveConfig', data })
+  }).then(() => { alert('✅ บันทึก Threshold แล้ว'); loadDashboard(); })
+    .catch(() => alert('❌ บันทึกไม่สำเร็จ'));
+}
+
+// ──────────────────────────────────────────
+// UTILS
+// ──────────────────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+}
+function show(id){ const e=document.getElementById(id); if(e) e.style.display='flex'; }
+function hide(id){ const e=document.getElementById(id); if(e) e.style.display='none'; }
+function setText(id, val){ const e=document.getElementById(id); if(e) e.textContent=val; }
+
+// ──────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────
+loadDashboard();
+</script>
+</body>
+</html>
